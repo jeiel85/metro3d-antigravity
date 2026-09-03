@@ -19,7 +19,19 @@ export class MapController {
   }
 
   init() {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
+      let isResolved = false;
+      const complete = () => {
+        if (isResolved) return;
+        isResolved = true;
+        try {
+          this.setup3DBuildings();
+        } catch (e) {
+          console.warn('[MapController] setup3DBuildings fallback notice:', e);
+        }
+        resolve(this.map);
+      };
+
       try {
         this.map = new maplibregl.Map({
           container: this.containerId,
@@ -41,25 +53,29 @@ export class MapController {
           'bottom-right'
         );
 
-        this.map.on('load', () => {
-          this.setup3DBuildings();
-          resolve(this.map);
+        this.map.once('load', complete);
+        this.map.once('style.load', () => {
+          setTimeout(complete, 800);
         });
 
+        // Fail-safe timeout: never hang forever
+        setTimeout(complete, 2500);
+
         this.map.on('error', (e) => {
-          console.warn('[MapController] Map event warning:', e);
+          console.warn('[MapController] Map warning:', e);
         });
       } catch (err) {
-        reject(err);
+        console.error('[MapController] Map constructor error:', err);
+        complete();
       }
     });
   }
 
   setup3DBuildings() {
     try {
-      const style = this.map.getStyle();
+      const style = this.map?.getStyle();
       const layers = style?.layers || [];
-      let labelLayerId;
+      let labelLayerId = undefined;
       for (let i = 0; i < layers.length; i++) {
         if (layers[i].type === 'symbol' && layers[i].layout && layers[i].layout['text-field']) {
           labelLayerId = layers[i].id;
@@ -112,7 +128,7 @@ export class MapController {
       }
 
       // Set ambient light for 3D perspective
-      if (this.map.setLight) {
+      if (typeof this.map.setLight === 'function') {
         this.map.setLight({
           anchor: 'viewport',
           color: '#ffffff',

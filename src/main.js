@@ -28,21 +28,24 @@ class MetroApp {
     try {
       // 1. Load subway datasets
       await this.loader.loadAll((percent, msg) => {
-        if (progressEl) progressEl.style.width = `${percent * 0.5}%`;
+        if (progressEl) progressEl.style.width = `${percent * 0.45}%`;
         if (subtitleEl) subtitleEl.textContent = msg;
       });
 
       // 2. Initialize 3D Vector Map
       if (subtitleEl) subtitleEl.textContent = '서울 3D 빌딩과 지형을 생성하는 중...';
+      if (progressEl) progressEl.style.width = '60%';
       await this.mapCtrl.init();
-      if (progressEl) progressEl.style.width = '75%';
 
       // 3. Initialize Traffic Simulation Engine
       if (subtitleEl) subtitleEl.textContent = '실시간 열차 주행망을 배치하는 중...';
+      if (progressEl) progressEl.style.width = '80%';
       this.simulator = new TrainSimulator(this.loader);
       this.simulator.initialize();
 
       // 4. Initialize 3D Train & Track Renderer
+      if (subtitleEl) subtitleEl.textContent = '노선망과 역 마커를 렌더링하는 중...';
+      if (progressEl) progressEl.style.width = '92%';
       this.renderer = new TrainRenderer(this.mapCtrl, this.loader, this.simulator);
       this.renderer.init();
 
@@ -64,9 +67,11 @@ class MetroApp {
         const loader = document.getElementById('loader');
         if (loader) {
           loader.classList.add('hidden-fade');
-          setTimeout(() => loader.remove(), 700);
+          setTimeout(() => {
+            if (loader.parentNode) loader.parentNode.removeChild(loader);
+          }, 600);
         }
-      }, 500);
+      }, 400);
 
       // 6. Start Main Animation Loop
       this.lastTimestamp = performance.now();
@@ -106,7 +111,12 @@ class MetroApp {
 }
 
 // Bootstrap application on DOM ready
-window.addEventListener('DOMContentLoaded', () => {
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', () => {
+    const app = new MetroApp();
+    app.start();
+  });
+} else {
   const app = new MetroApp();
   app.start();
-});
+}
