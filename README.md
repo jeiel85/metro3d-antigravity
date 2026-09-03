@@ -8,6 +8,8 @@
 [![MapLibre GL](https://img.shields.io/badge/MapLibre%20GL-4.7-blue?style=for-the-badge&logo=maplibre)](https://maplibre.org/)
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-black?style=for-the-badge&logo=three.js)](https://threejs.org/)
 
+`#maplibre-gl` `#threejs` `#digital-twin` `#subway` `#seoul` `#metro` `#3d-visualization` `#realtime-simulation` `#webgl` `#openfreemap`
+
 ---
 
 ## 🌟 주요 기능 (Key Features)
