@@ -1,0 +1,18 @@
+{
+  "name": "metro3d-antigravity",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Seoul Metropolitan Subway 3D Digital Twin & Live Simulator",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "maplibre-gl": "^4.7.1",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}
