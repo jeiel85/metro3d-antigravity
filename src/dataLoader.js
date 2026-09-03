@@ -32,7 +32,7 @@ export class DataLoader {
     this.ridership = await riderRes.json();
 
     // Index Stations
-    for (const station of this.network.stations) {
+    for (const station of this.network.stations || []) {
       this.stationsById.set(station.id, station);
       if (!this.stationsByName.has(station.name)) {
         this.stationsByName.set(station.name, []);
@@ -41,14 +41,20 @@ export class DataLoader {
     }
 
     // Index Lines
-    for (const line of this.network.lines) {
+    for (const line of this.network.lines || []) {
       this.linesById.set(line.id, line);
     }
 
     onProgress(70, '선로 궤도 거리 및 보간 데이터 전처리 중...');
-    // Precompute route segment distances for fast train interpolation
-    for (const [routeId, route] of Object.entries(this.network.routes)) {
-      const coords = route.coordinates;
+    // Handle both Array and Object routes safely
+    const routesList = Array.isArray(this.network.routes)
+      ? this.network.routes
+      : Object.values(this.network.routes || {});
+
+    for (const route of routesList) {
+      const coords = route.coords || route.coordinates || [];
+      if (!coords || coords.length < 2) continue;
+
       const cumDistances = [0];
       let total = 0;
 
@@ -58,11 +64,14 @@ export class DataLoader {
         cumDistances.push(total);
       }
 
+      const routeId = route.id || `route-${this.routesPrepared.size}`;
       this.routesPrepared.set(routeId, {
         ...route,
-        coordinates: coords,
+        id: routeId,
+        coords,
+        coordinates: coords, // support both property aliases
         cumDistances,
-        totalDistance: total,
+        totalDistance: total || route.length || 1000,
       });
     }
 
@@ -93,10 +102,12 @@ export class DataLoader {
    */
   getInterpolatedPosition(routeId, distanceMeters) {
     const route = this.routesPrepared.get(routeId);
-    if (!route || route.coordinates.length < 2) return null;
+    if (!route) return null;
 
-    const { coordinates, cumDistances, totalDistance } = route;
-    // Clamping / looping distance
+    const coordinates = route.coords || route.coordinates;
+    if (!coordinates || coordinates.length < 2) return null;
+
+    const { cumDistances, totalDistance } = route;
     let dist = distanceMeters;
     if (dist < 0) dist = 0;
     if (dist > totalDistance) dist = totalDistance;
@@ -116,9 +127,10 @@ export class DataLoader {
     const idx = Math.max(0, Math.min(coordinates.length - 2, high));
     const p1 = coordinates[idx];
     const p2 = coordinates[idx + 1];
+    if (!p1 || !p2) return null;
 
     const segStart = cumDistances[idx];
-    const segEnd = cumDistances[idx + 1];
+    const segEnd = cumDistances[idx + 1] || totalDistance;
     const segLen = segEnd - segStart;
     const t = segLen > 0 ? (dist - segStart) / segLen : 0;
 

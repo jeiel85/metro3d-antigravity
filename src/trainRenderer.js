@@ -2,7 +2,6 @@
  * trainRenderer.js
  * High-performance subway tracks, stations, and animated 3D train renderer using MapLibre GL & Three.js.
  */
-import * as THREE from 'three';
 import maplibregl from 'maplibre-gl';
 
 export class TrainRenderer {
@@ -15,7 +14,6 @@ export class TrainRenderer {
     this.trackingTrainId = null;
     this.onTrainSelect = null;
     this.onStationSelect = null;
-    this.threeLayer = null;
   }
 
   init() {
@@ -32,19 +30,22 @@ export class TrainRenderer {
     for (const [routeId, route] of routesPrepared.entries()) {
       const lineId = route.line || routeId.split('-')[0] || '1';
       const lineInfo = linesById.get(lineId) || { color: '#00A84D' };
+      const coords = route.coords || route.coordinates || [];
 
-      trackFeatures.push({
-        type: 'Feature',
-        properties: {
-          routeId,
-          lineId,
-          color: lineInfo.color,
-        },
-        geometry: {
-          type: 'LineString',
-          coordinates: route.coordinates,
-        },
-      });
+      if (coords.length >= 2) {
+        trackFeatures.push({
+          type: 'Feature',
+          properties: {
+            routeId,
+            lineId,
+            color: lineInfo.color,
+          },
+          geometry: {
+            type: 'LineString',
+            coordinates: coords,
+          },
+        });
+      }
     }
 
     const geojson = {
@@ -100,7 +101,7 @@ export class TrainRenderer {
     const { network, linesById } = this.loader;
     const stationFeatures = [];
 
-    for (const st of network.stations) {
+    for (const st of network.stations || []) {
       const isTransfer = st.lines && st.lines.length > 1;
       const primaryLine = linesById.get(st.lines[0]) || { color: '#ffffff' };
 
@@ -112,7 +113,7 @@ export class TrainRenderer {
           nameEn: st.nameEn || '',
           isTransfer,
           primaryColor: primaryLine.color,
-          lines: JSON.stringify(st.lines),
+          lines: JSON.stringify(st.lines || []),
         },
         geometry: {
           type: 'Point',
@@ -273,7 +274,7 @@ export class TrainRenderer {
             id: props.id,
             name: props.name,
             nameEn: props.nameEn,
-            lines: JSON.parse(props.lines),
+            lines: JSON.parse(props.lines || '[]'),
             coords: feat.geometry.coordinates,
           });
         }
