@@ -1,0 +1,16 @@
+{
+  "name": "METRO 3D SEOUL - 수도권 지하철 3D 디지털 트윈",
+  "short_name": "METRO 3D",
+  "description": "수도권 지하철 열차 운행을 3D 지도 위에서 시뮬레이션하는 디지털 트윈",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#090d16",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
